@@ -14,3 +14,9 @@ This repo contains 2no technical questions to be completed by candidates for a F
 
 2. **JavaScript Web Development Question**
     - answer the question in `question-js-webdev.md`
+
+
+## How to Answer
+
+Create your own **private** fork of this repo and add you answers.
+In the technical interview we will review your answers together, you will be expected to share your screen and drive the IDE. 
