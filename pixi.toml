@@ -1,0 +1,14 @@
+[workspace]
+authors = ["jgunstone <j.gunstone@maxfordham.com>"]
+channels = ["conda-forge"]
+name = "0729-InterviewQuestions"
+platforms = ["linux-64"]
+version = "0.1.0"
+
+[tasks]
+jlab = "jupyter lab question-python-engineering.ipynb"
+
+[dependencies]
+numpy = ">=2.3.2,<3"
+matplotlib = ">=3.10.3,<4"
+jupyterlab = ">=4.4.5,<5"
