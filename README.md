@@ -1,6 +1,6 @@
 # Full Stack Dev Interview Questions
 
-This repo contains 2no technical questions to be completed by candidates for a Full Stack Developer position. The questions are designed to assess the candidate's problem-solving skills and web development knowledge.
+This repo contains 2no technical questions to be completed by candidates for a Full Stack Developer position. The questions are designed to assess the candidate's problem-solving skills, web development knowledge and ability to research a problem and arrive at a practical solution.
 
 ## Questions
 
