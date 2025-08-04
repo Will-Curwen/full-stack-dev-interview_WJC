@@ -2,7 +2,7 @@ import numpy as np
 import heapq
 import matplotlib.pyplot as plt
 
-def dijkstra_min_bends2(grid, start, end):
+def dijkstra_distance_priority(grid, start, end):
     rows, cols = grid.shape
     visited = np.full((rows, cols), False)
     distance = np.full((rows, cols), np.inf)
