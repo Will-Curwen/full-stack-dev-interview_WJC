@@ -2,6 +2,12 @@
 
 This repo contains 2no technical questions to be completed by candidates for a Full Stack Developer position. The questions are designed to assess the candidate's problem-solving skills, web development knowledge and ability to research a problem and arrive at a practical solution.
 
+```{note}
+It has come to our attention that the `grid.tsv` file was missing from the repo, this is vital for the python question.
+This has now been added, but we acknowledge that the time available to complete the question has been reduced.
+Ideally candidates are able to proceed with the existing interview schedule, but please get in touch if you require more time to complete the question.
+```
+
 ## Questions
 
 1. **Python Engineering Question**
