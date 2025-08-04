@@ -69,6 +69,68 @@ def dijkstra_distance_priority(grid, start, end):
 
     return path, bends
 
+
+def dijkstra_min_bends(grid, start, end):
+    rows, cols = grid.shape
+    visited = np.full((rows, cols), False)
+    distance = np.full((rows, cols), np.inf)
+    bend_count = np.full((rows, cols), np.inf)
+    prev_direction = np.full((rows, cols), None)
+
+    distance[start] = 0
+    bend_count[start] = 0
+
+    # Priority queue: (bend_count, distance, (x, y), direction)
+    queue = [(0, 0, start, None)]
+
+    # Directions: (dx, dy, direction_label)
+    directions = [(-1, 0, 'up'), (1, 0, 'down'), (0, -1, 'left'), (0, 1, 'right')]
+
+    parent = {}
+
+    while queue:
+        bends, dist, (x, y), dir_from = heapq.heappop(queue)
+
+        if visited[x, y]:
+            continue
+        visited[x, y] = True
+
+        if (x, y) == end:
+            break
+
+        for dx, dy, direction in directions:
+            nx, ny = x + dx, y + dy
+            if 0 <= nx < rows and 0 <= ny < cols and grid[nx, ny] == 0:
+                new_bends = bends + (0 if direction == dir_from else 1)
+                new_dist = dist + 1
+                if (new_bends < bend_count[nx, ny]) or (new_bends == bend_count[nx, ny] and new_dist < distance[nx, ny]):
+                    bend_count[nx, ny] = new_bends
+                    distance[nx, ny] = new_dist
+                    prev_direction[nx, ny] = direction
+                    parent[(nx, ny)] = (x, y)
+                    heapq.heappush(queue, (new_bends, new_dist, (nx, ny), direction))
+
+    # Reconstruct path
+    path = []
+    bends = []
+    node = end
+    last_direction = None
+    while node in parent:
+        path.append(node)
+        prev = parent[node]
+        dx, dy = node[0] - prev[0], node[1] - prev[1]
+        direction = ('up' if dx == -1 else 'down') if dy == 0 else ('left' if dy == -1 else 'right')
+        if direction != last_direction:
+            bends.append(node)
+            last_direction = direction
+        node = prev
+    path.append(start)
+    path.reverse()
+    bends.reverse()
+
+    return path, bends
+
+
 def plot_path(grid, path, bends):
     fig, ax = plt.subplots(figsize=(10, 10))
     ax.imshow(grid, cmap=plt.cm.Dark2)
