@@ -67,7 +67,13 @@ def dijkstra_distance_priority(grid, start, end):
     path.reverse()
     bends.reverse()
 
+    
+    # Remove final point from bends if present
+    if bends and bends[-1] == end:
+        bends.pop()
+
     return path, bends
+
 
 
 def dijkstra_min_bends(grid, start, end):
@@ -128,6 +134,11 @@ def dijkstra_min_bends(grid, start, end):
     path.reverse()
     bends.reverse()
 
+    
+    # Remove final point from bends if present
+    if bends and bends[-1] == end:
+        bends.pop()
+
     return path, bends
 
 
@@ -142,5 +153,8 @@ def plot_path(grid, path, bends):
     plt.scatter(path_y[0], path_x[0], color='green', label='Start')
     plt.scatter(path_y[-1], path_x[-1], color='orange', label='End')
     plt.legend()
-    plt.title("Shortest Path with Minimal Bends")
+    plt.title("Shortest Path")
     plt.show()
+
+def pipe_lengths(path, bends):
+    return None
