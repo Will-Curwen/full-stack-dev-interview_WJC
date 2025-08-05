@@ -1,6 +1,12 @@
 import numpy as np
 import heapq
 import matplotlib.pyplot as plt
+import csv
+from pathlib import Path
+import fluids
+from fluids.vectorized import *
+from fluids.units import *
+from math import *
 
 def dijkstra_distance_priority(grid, start, end):
     rows, cols = grid.shape
@@ -74,74 +80,6 @@ def dijkstra_distance_priority(grid, start, end):
 
     return path, bends
 
-
-
-def dijkstra_min_bends(grid, start, end):
-    rows, cols = grid.shape
-    visited = np.full((rows, cols), False)
-    distance = np.full((rows, cols), np.inf)
-    bend_count = np.full((rows, cols), np.inf)
-    prev_direction = np.full((rows, cols), None)
-
-    distance[start] = 0
-    bend_count[start] = 0
-
-    # Priority queue: (bend_count, distance, (x, y), direction)
-    queue = [(0, 0, start, None)]
-
-    # Directions: (dx, dy, direction_label)
-    directions = [(-1, 0, 'up'), (1, 0, 'down'), (0, -1, 'left'), (0, 1, 'right')]
-
-    parent = {}
-
-    while queue:
-        bends, dist, (x, y), dir_from = heapq.heappop(queue)
-
-        if visited[x, y]:
-            continue
-        visited[x, y] = True
-
-        if (x, y) == end:
-            break
-
-        for dx, dy, direction in directions:
-            nx, ny = x + dx, y + dy
-            if 0 <= nx < rows and 0 <= ny < cols and grid[nx, ny] == 0:
-                new_bends = bends + (0 if direction == dir_from else 1)
-                new_dist = dist + 1
-                if (new_bends < bend_count[nx, ny]) or (new_bends == bend_count[nx, ny] and new_dist < distance[nx, ny]):
-                    bend_count[nx, ny] = new_bends
-                    distance[nx, ny] = new_dist
-                    prev_direction[nx, ny] = direction
-                    parent[(nx, ny)] = (x, y)
-                    heapq.heappush(queue, (new_bends, new_dist, (nx, ny), direction))
-
-    # Reconstruct path
-    path = []
-    bends = []
-    node = end
-    last_direction = None
-    while node in parent:
-        path.append(node)
-        prev = parent[node]
-        dx, dy = node[0] - prev[0], node[1] - prev[1]
-        direction = ('up' if dx == -1 else 'down') if dy == 0 else ('left' if dy == -1 else 'right')
-        if direction != last_direction:
-            bends.append(node)
-            last_direction = direction
-        node = prev
-    path.append(start)
-    path.reverse()
-    bends.reverse()
-
-    
-    # Remove final point from bends if present
-    if bends and bends[-1] == end:
-        bends.pop()
-
-    return path, bends
-
-
 def plot_path(grid, path, bends):
     fig, ax = plt.subplots(figsize=(10, 10))
     ax.imshow(grid, cmap=plt.cm.Dark2)
@@ -156,5 +94,54 @@ def plot_path(grid, path, bends):
     plt.title("Shortest Path")
     plt.show()
 
+def unit_conversion(length):
+    """ Assume we are in units of decimetres in the grid"""
+    return length/10
+
 def pipe_lengths(path, bends):
-    return None
+    start = path[0]
+    end = path[-1]
+    nodes = [start] + bends +[end]
+    distances = []
+
+    for i, node in enumerate(nodes):
+        if i == len(nodes)-1:
+            break
+        else:
+            length = np.sqrt((nodes[i+1][0]-nodes[i][0])**2+(nodes[i+1][1]-nodes[i][1])**2)
+            distances.append(unit_conversion(length))
+
+    return distances
+
+def pressure_drop_simple(path, bends, flow_rate, diameter):
+    """
+    flow rate in m**3/s
+    diameter in m
+    """
+    d1=diameter*u.m
+    velocity = flow_rate/(pi/4*diameter**2)*u.m/u.s
+    rho = 1000*u.kg/u.m**3
+    mu = 1E-3*u.Pa*u.s
+    total_length = sum(pipe_lengths(path,bends))*u.m
+    
+    Re = Reynolds(V=velocity, D=d1, rho=rho, mu=mu)
+    fd = friction_factor(Re, eD=1e-5/diameter)
+    K = K_from_f(fd=fd, L=total_length, D=d1)
+    K += entrance_sharp()
+    K += exit_normal()
+    K += len(bends)*bend_miter(angle=90*u.degrees)
+    pressure_drop = dP_from_K(K, rho=rho,V=velocity)
+    return round(pressure_drop)
+
+if __name__ == "__main__":
+    rows = list(csv.reader(Path("grid.tsv").open(encoding="utf-8"), delimiter="\t"))
+    grid = np.array([[int(x) for x in row] for row in rows])
+    start = (18, 40)
+    goal = (92, 25)
+    flow_rate = 0.01
+    diameter=0.05
+    
+    path, bends = dijkstra_distance_priority(grid, start, goal)
+    plot_path(grid, path, bends)
+    dp = pressure_drop_simple(path, bends, flow_rate, diameter)
+    print("Pressure drop of pipe of diameter {} m with flow rate of {} m^3/s is {}".format(diameter, flow_rate, dp))
